@@ -51,11 +51,10 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
             duration = 3.0
 
         # 2. Create Stylish Text Image using Pillow
-        img_width, img_height = 720, 1280  # Optimized resolution for fast and clean rendering
+        img_width, img_height = 720, 1280  # Optimized resolution for fast rendering
         img = Image.new("RGB", (img_width, img_height), color=(10, 10, 18))
         draw = ImageDraw.Draw(img)
 
-        # Use default safe font to avoid missing path errors on cloud servers
         try:
             font = ImageFont.truetype("/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf", 45)
         except:
@@ -84,10 +83,7 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
             if y_offset > img_height - 100:
                 break
             
-            # Simple centering logic
-            x = 60  # Left margin padding for clean look
-            
-            # Draw text shadow and bright main text
+            x = 60
             draw.text((x + 2, y_offset + 2), line, font=font, fill=(0, 0, 0))
             draw.text((x, y_offset), line, font=font, fill=(0, 255, 204))
             y_offset += line_height
@@ -98,7 +94,7 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
         # 3. Fast FFmpeg Video Generation
         output_video = "output.mp4"
         ffmpeg_cmd = f"ffmpeg -loop 1 -i {image_path} -i {audio_path} -c:v libx264 -preset ultrafast -tune stillimage -c:a aac -b:a 128k -t {duration} -pix_fmt yuv420p -shortest -y {output_video}"
-        subprocess.run(ffmpeg_cmd, shell=Test:=True, check=True) if 'Test' in globals() else subprocess.run(ffmpeg_cmd, shell=True, check=True)
+        subprocess.run(ffmpeg_cmd, shell=True, check=True)
 
         # 4. Send Video to User
         with open(output_video, 'rb') as video_file:
