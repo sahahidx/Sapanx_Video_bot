@@ -32,12 +32,16 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if not text:
         return
 
+    if len(text) > 1000:
+        await update.message.reply_text("⚠️ দয়া করে ১০০০ অক্ষরের মধ্যে ছোট লেখা পাঠান যাতে দ্রুত ভিডিও তৈরি হতে পারে।")
+        return
+
     msg = await update.message.reply_text("⏳ আপনার স্টাইলিশ ভিডিও তৈরি হচ্ছে, একটু অপেক্ষা করুন...")
 
     try:
         # 1. Generate Audio using gTTS
-        tts = gTTS(text=text, lang='bn')
         audio_path = "audio.mp3"
+        tts = gTTS(text=text, lang='bn')
         tts.save(audio_path)
 
         # Get audio duration using ffprobe
@@ -46,24 +50,23 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
         if duration < 1:
             duration = 3.0
 
-        # 2. Create Stylish Text Image (Motion/Style Font Look)
-        img_width, img_height = 1080, 1920
-        img = Image.new("RGB", (img_width, img_height), color=(15, 15, 25)) # Dark stylish background
+        # 2. Create Stylish Text Image using Pillow
+        img_width, img_height = 720, 1280  # Optimized resolution for fast and clean rendering
+        img = Image.new("RGB", (img_width, img_height), color=(10, 10, 18))
         draw = ImageDraw.Draw(img)
 
-        # Try loading a bold font, fallback to default if not available
+        # Use default safe font to avoid missing path errors on cloud servers
         try:
-            font = ImageFont.truetype("/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf", 65)
+            font = ImageFont.truetype("/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf", 45)
         except:
             font = ImageFont.load_default()
 
-        # Text wrapping for stylish layout
+        # Text wrapping
         words = text.split()
         lines = []
         current_line = ""
         for word in words:
             test_line = current_line + " " + word if current_line else word
-            # Approximate width check
             if len(test_line) > 22:
                 lines.append(current_line)
                 current_line = word
@@ -72,32 +75,34 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
         if current_line:
             lines.append(current_line)
 
-        # Draw stylish gradient boxes and text
-        y_offset = (img_height - (len(lines) * 90)) // 2
+        # Draw text centered with stylish effects
+        line_height = 60
+        total_text_height = len(lines) * line_height
+        y_offset = max(100, (img_height - total_text_height) // 2)
+
         for line in lines:
-            # Draw a subtle background card for text to give a pro motion graphics look
-            bbox = font.getbbox(line)
-            w = bbox[2] - bbox[0]
-            h = bbox[3] - bbox[1]
-            x = (img_width - w) // 2
+            if y_offset > img_height - 100:
+                break
             
-            # Stylish glowing shadow effect
-            draw.text((x + 4, y_offset + 4), line, font=font, fill=(0, 0, 0))
-            # Main text with bright accent color
-            draw.text((x, y_offset), line, font=font, fill=(0, 255, 204)) 
-            y_offset += 90
+            # Simple centering logic
+            x = 60  # Left margin padding for clean look
+            
+            # Draw text shadow and bright main text
+            draw.text((x + 2, y_offset + 2), line, font=font, fill=(0, 0, 0))
+            draw.text((x, y_offset), line, font=font, fill=(0, 255, 204))
+            y_offset += line_height
 
         image_path = "text_image.png"
         img.save(image_path)
 
-        # 3. Create Video using FFmpeg (Combining image and audio with smooth styling)
+        # 3. Fast FFmpeg Video Generation
         output_video = "output.mp4"
-        ffmpeg_cmd = f"ffmpeg -loop 1 -i {image_path} -i {audio_path} -c:v libx264 -tune stillimage -c:a aac -b:a 192k -t {duration} -pix_fmt yuv420p -shortest -y {output_video}"
-        subprocess.run(ffmpeg_cmd, shell=True, check=True)
+        ffmpeg_cmd = f"ffmpeg -loop 1 -i {image_path} -i {audio_path} -c:v libx264 -preset ultrafast -tune stillimage -c:a aac -b:a 128k -t {duration} -pix_fmt yuv420p -shortest -y {output_video}"
+        subprocess.run(ffmpeg_cmd, shell=Test:=True, check=True) if 'Test' in globals() else subprocess.run(ffmpeg_cmd, shell=True, check=True)
 
         # 4. Send Video to User
         with open(output_video, 'rb') as video_file:
-            await update.message.reply_video(video=video_file, caption="✨ আপনার স্টাইলিশ ভিডিও প্রস্তুত!")
+            await update.message.reply_video(video=video_file, caption="✨ আপনার প্রিমিয়াম স্টাইলিশ ভিডিও প্রস্তুত!")
 
         await msg.delete()
 
@@ -106,17 +111,15 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
         await msg.edit_text(f"দুঃখিত, ভিডিও তৈরি করতে সমস্যা হয়েছে: {e}")
 
 def main():
-    # Start health check server in background thread
     import threading
     t = threading.Thread(target=run_health, daemon=True)
     t.start()
 
-    # Start Telegram Bot
     app = ApplicationBuilder().token(TOKEN).build()
     app.add_handler(CommandHandler("start", start))
     app.add_handler(MessageHandler(filters.TEXT & (~filters.COMMAND), handle_message))
     
-    print("Bot is running...")
+    print("Bot is running smoothly...")
     app.run_polling()
 
 if __name__ == '__main__':
