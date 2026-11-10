@@ -1,8 +1,8 @@
 FROM python:3.11-slim
 
 RUN apt-get update && apt-get install -y --no-install-recommends \
-    ffmpeg libraqm0 libfribidi0 libharfbuzz0b fonts-noto-core fonts-beng \
-    && rm -rf /var/lib/apt/lists/*
+    ffmpeg libraqm0 libfribidi0 fontconfig fonts-noto-core fonts-beng \
+    && rm -rf /var/lib/apt/lists/* && fc-cache -f
 
 WORKDIR /app
 COPY requirements.txt .
