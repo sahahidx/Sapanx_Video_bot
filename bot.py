@@ -25,7 +25,7 @@ def run_health():
     server.serve_forever()
 
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    await update.message.reply_text("হ্যালো! আমাকে যেকোনো বাংলা লেখা পাঠান, আমি সেটিকে স্টাইলিশ ফন্ট ও ভয়েস সহ সুন্দর ভিডিওতে রূপান্তর করে দেবো! 🎬✨")
+    await update.message.reply_text("X sapan ")
 
 async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
     text = update.message.text
@@ -36,7 +36,7 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
         await update.message.reply_text("⚠️ দয়া করে ১০০০ অক্ষরের মধ্যে ছোট লেখা পাঠান যাতে দ্রুত ভিডিও তৈরি হতে পারে।")
         return
 
-    msg = await update.message.reply_text("⏳ আপনার স্টাইলিশ ভিডিও তৈরি হচ্ছে, একটু অপেক্ষা করুন...")
+    msg = await update.message.reply_text("⏳ crating now ...")
 
     try:
         # 1. Generate Audio using gTTS
@@ -104,7 +104,7 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
     except Exception as e:
         logging.error(f"Error: {e}")
-        await msg.edit_text(f"দুঃখিত, ভিডিও তৈরি করতে সমস্যা হয়েছে: {e}")
+        await msg.edit_text(f"checking for internet connection : {e}")
 
 def main():
     import threading
